@@ -14,10 +14,11 @@ let timeline = document.querySelector('.timeline');
 let videoWrapper = document.querySelector('.video-wrapper');
 let timelineContainer = document.querySelector('.timeline-container');
 
-
 function handleVideoFile(file) {
+    video.removeAttribute("src")
     audio.src = "";
-    const videoURL = URL.createObjectURL(file);
+    audio.removeAttribute("src");
+    let videoURL = URL.createObjectURL(file);
     const trackElement = document.querySelector('track');
     videoContainer.classList.remove('captions');
     videoContainer.classList.add("paused");
@@ -228,11 +229,11 @@ document.addEventListener('fullscreenchange', () => {
     videoContainer.classList.toggle("full-screen", document.fullscreenElement);
 });
 
-video.addEventListener("enterpictureinpicture", () => {
+video.addEventListener('enterpictureinpicture', () => {
     videoContainer.classList.add("mini-player")
 })
 
-video.addEventListener("leavepictureinpicture", () => {
+video.addEventListener('leavepictureinpicture', () => {
     videoContainer.classList.remove("mini-player")
 })
 
@@ -257,11 +258,17 @@ function showControls() {
 
 function togglePlay() {
    if (video.paused){
-       video.play().then(()=> {})
        videoContainer.addEventListener('mousemove', hideControls);
        videoContainer.addEventListener('mousemove', showControls);
-       if (audio && audio.src){
-           audio.play().then(() =>{});
+       const playPromise = video.play();
+       if (playPromise !== undefined) {
+           playPromise.then(() => {
+               if (audio && audio.src) {
+                   audio.play().then(()=>{});
+               }
+           }).catch(error => {
+               console.log(error);
+           });
        }
    } else{
        video.pause()
@@ -282,4 +289,11 @@ video.addEventListener('play', () => {
 video.addEventListener('pause', () => {
     videoContainer.classList.add("paused");
     showControls();
+})
+
+video.addEventListener('ended', () => {
+    video.currentTime = 0;
+    videoContainer.style.background="black";
+    videoControls.style.opacity = "1";
+    videoContainer.style.cursor = "default";
 })
